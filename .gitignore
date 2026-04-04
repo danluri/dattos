@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test / cache
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Local database / runtime data
+*.db
+data/*.db
+
+# Lake snapshots gerados em execução
+data/lake/*.json
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# Docker
+docker-compose.override.yml
