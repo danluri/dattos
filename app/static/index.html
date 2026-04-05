@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Escopo 1 Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1100px; margin: 24px auto; padding: 0 16px; line-height: 1.4; }
+    h1, h2 { margin-bottom: 8px; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 16px 0; }
+    button { padding: 10px 14px; margin-right: 8px; cursor: pointer; }
+    pre { background: #f7f7f7; padding: 12px; border-radius: 8px; overflow: auto; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>Demo do Escopo 1 — Conciliação Autônoma</h1>
+  <p>Esta aplicação demonstra matching <strong>exato</strong>, <strong>fuzzy</strong>, <strong>ML</strong> e <strong>revisão humana</strong>, além de trilha de auditoria e métricas de qualidade.</p>
+
+  <div class="card">
+    <button onclick="callApi('/api/reset', 'POST')">Resetar demo</button>
+    <button onclick="callApi('/api/reconcile/run', 'POST')">Executar conciliação</button>
+    <button onclick="loadAll()">Atualizar painéis</button>
+    <p>Swagger: <a href="/docs" target="_blank">/docs</a></p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Métricas de qualidade</h2>
+      <pre id="quality">Carregando...</pre>
+    </div>
+    <div class="card">
+      <h2>Degradação</h2>
+      <pre id="degradation">Carregando...</pre>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Decisões</h2>
+      <pre id="decisions">Carregando...</pre>
+    </div>
+    <div class="card">
+      <h2>Eventos de auditoria</h2>
+      <pre id="events">Carregando...</pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pendências de revisão humana</h2>
+    <pre id="review">Carregando...</pre>
+    <p>Você pode aprovar via API, por exemplo:</p>
+    <pre>POST /api/review/4
+{
+  "action": "approve",
+  "comment": "Aprovado no fluxo de revisão"
+}</pre>
+  </div>
+
+  <script>
+    async function callApi(url, method) {
+      const response = await fetch(url, { method });
+      const data = await response.json();
+      alert(JSON.stringify(data, null, 2));
+      loadAll();
+    }
+
+    async function loadJson(url) {
+      const res = await fetch(url);
+      return res.json();
+    }
+
+    async function loadAll() {
+      const [quality, degradation, decisions, events, review] = await Promise.all([
+        loadJson('/api/quality'),
+        loadJson('/api/degradation'),
+        loadJson('/api/decisions'),
+        loadJson('/api/events?limit=20'),
+        loadJson('/api/review/pending'),
+      ]);
+      document.getElementById('quality').textContent = JSON.stringify(quality, null, 2);
+      document.getElementById('degradation').textContent = JSON.stringify(degradation, null, 2);
+      document.getElementById('decisions').textContent = JSON.stringify(decisions, null, 2);
+      document.getElementById('events').textContent = JSON.stringify(events, null, 2);
+      document.getElementById('review').textContent = JSON.stringify(review, null, 2);
+    }
+
+    loadAll();
+  </script>
+</body>
+</html>
