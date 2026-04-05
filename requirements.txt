@@ -1,15 +1,7 @@
-<<<<<<< HEAD
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 jinja2==3.1.4
-numpy==2.1.1
-scikit-learn==1.5.1
+numpy==1.26.4
+scikit-learn==1.3.2
 rapidfuzz==3.9.7
 python-multipart==0.0.9
-=======
-fastapi>=0.111,<1.0
-uvicorn[standard]>=0.30,<1.0
-rapidfuzz>=3.0,<4.0
-scikit-learn>=1.5,<2.0
-numpy>=1.26,<3.0
->>>>>>> dd27806656399473a21db3b282b330a5e55509ca

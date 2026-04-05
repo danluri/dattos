@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 # Dattos Demo Unificada v3
-
 Demo única com os 3 escopos do desafio:
 
 - **Escopo 1**: conciliação bancária com matching exato, fuzzy, ML, fila humana, qualidade e degradação.
@@ -37,13 +35,10 @@ Ao subir a aplicação, ela carrega dados mockados com 5 casos:
 - **Docker Compose**: subida simples com um comando.
 
 ## Como rodar
->>>>>>> dd27806656399473a21db3b282b330a5e55509ca
 
 ```bash
 docker compose up --build
 ```
-
-<<<<<<< HEAD
 Acesse:
 
 - App: `http://localhost:8000`

@@ -1,14 +1,7 @@
 services:
-<<<<<<< HEAD
   dattos-demo-unificado:
     build: .
     container_name: dattos-demo-unificado
-    ports:
-      - "8000:8000"
-=======
-  escopo1-demo:
-    build: .
-    container_name: escopo1-demo
     ports:
       - "8000:8000"
     volumes:
@@ -18,4 +11,3 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
->>>>>>> dd27806656399473a21db3b282b330a5e55509ca
