@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="hero">
+  <div>
+    <p class="eyebrow">Auditoria e Métricas</p>
+    <h1>Visão combinada dos 3 escopos</h1>
+    <p class="muted">Aqui ficam juntos os recibos técnicos de conciliação, anomalias e RAG, com métricas resumidas e eventos/traces para apresentação.</p>
+  </div>
+  <div class="actions"><button id="loadBtn">Carregar auditoria</button></div>
+</header>
+<section class="grid results-grid">
+  <article class="card"><h2>Resumo Escopo 1</h2><div id="scope1Metrics" class="mini-grid empty-state">Carregue a auditoria.</div></article>
+  <article class="card"><h2>Resumo Escopo 2</h2><div id="scope2Metrics" class="mini-grid empty-state">Carregue a auditoria.</div></article>
+  <article class="card"><h2>Resumo Escopo 3</h2><div id="scope3Metrics" class="mini-grid empty-state">Carregue a auditoria.</div></article>
+  <article class="card"><h2>Contagem</h2><div id="countBox" class="mini-grid empty-state">Carregue a auditoria.</div></article>
+</section>
+<section class="card"><h2>Eventos combinados</h2><div id="auditEvents" class="audit-list empty-state">Nenhum evento carregado.</div></section>
+<script>
+  document.getElementById('loadBtn').addEventListener('click', async () => {
+    const data = await fetch('/api/audit/combined').then(r=>r.json());
+    document.getElementById('scope1Metrics').classList.remove('empty-state');
+    document.getElementById('scope1Metrics').innerHTML = `<div class="mini-card"><span>Precisão</span><strong>${data.summary.escopo1.precision}</strong></div><div class="mini-card"><span>Fila humana</span><strong>${data.summary.escopo1.human_queue_rate}</strong></div><div class="mini-card"><span>F1</span><strong>${data.summary.escopo1.f1}</strong></div>`;
+    document.getElementById('scope2Metrics').classList.remove('empty-state');
+    document.getElementById('scope2Metrics').innerHTML = `<div class="mini-card"><span>Precision@k</span><strong>${data.summary.escopo2.precision_at_k}</strong></div><div class="mini-card"><span>Recall</span><strong>${data.summary.escopo2.recall}</strong></div><div class="mini-card"><span>Inconclusivo</span><strong>${data.summary.escopo2.inconclusive_rate}</strong></div>`;
+    document.getElementById('scope3Metrics').classList.remove('empty-state');
+    document.getElementById('scope3Metrics').innerHTML = `<div class="mini-card"><span>NDCG@10</span><strong>${data.summary.escopo3.ndcg_at_10}</strong></div><div class="mini-card"><span>Recall@5</span><strong>${data.summary.escopo3.recall_at_5}</strong></div><div class="mini-card"><span>Faithfulness</span><strong>${data.summary.escopo3.faithfulness}</strong></div>`;
+    document.getElementById('countBox').classList.remove('empty-state');
+    document.getElementById('countBox').innerHTML = `<div class="mini-card"><span>Total</span><strong>${data.summary.counts.total_events}</strong></div><div class="mini-card"><span>Escopo 1</span><strong>${data.summary.counts.scope1_events}</strong></div><div class="mini-card"><span>Escopo 2</span><strong>${data.summary.counts.scope2_events}</strong></div><div class="mini-card"><span>Escopo 3</span><strong>${data.summary.counts.scope3_events}</strong></div>`;
+    const box = document.getElementById('auditEvents'); box.classList.remove('empty-state');
+    box.innerHTML = data.audit_events.map(event => `<details class="audit-item"><summary><span><strong>${event.scope}</strong> · ${event.transaction_id || event.entity_id || event.trace_id || ''}</span><span>${event.resolution || event.decision || event.status || event.event_type || ''}</span></summary><pre>${JSON.stringify(event, null, 2)}</pre></details>`).join('');
+  });
+</script>
+{% endblock %}

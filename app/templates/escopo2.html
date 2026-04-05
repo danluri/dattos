@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="hero">
+  <div>
+    <p class="eyebrow">Escopo 2</p>
+    <h1>Detecção de anomalias em 4 camadas</h1>
+    <p class="muted">Regras, estatística, semântica e camada explicável. Mantive o comportamento do demo já usado, com foco em leitura fácil para apresentação.</p>
+  </div>
+  <div class="actions"><button id="runBtn">Executar detecção</button></div>
+</header>
+<section class="grid top-grid">
+  <article class="card stat-card"><span>Histórico</span><strong>{{ history_count }}</strong></article>
+  <article class="card stat-card"><span>Lote atual</span><strong>{{ current_count }}</strong></article>
+  <article class="card stat-card"><span>Camadas</span><strong>4</strong></article>
+</section>
+<section class="grid two-col">
+  <article class="card"><h2>Histórico</h2><div class="table-wrap"><table id="historyTable"><thead><tr><th>ID</th><th>Conta</th><th>Descrição</th><th>Valor</th></tr></thead><tbody></tbody></table></div></article>
+  <article class="card"><h2>Lote atual</h2><div class="table-wrap"><table id="currentTable"><thead><tr><th>ID</th><th>Conta</th><th>Descrição</th><th>Valor</th></tr></thead><tbody></tbody></table></div></article>
+</section>
+<section class="grid results-grid">
+  <article class="card"><h2>Resumo</h2><div id="summaryBox" class="mini-grid empty-state">Execute para carregar.</div></article>
+  <article class="card"><h2>Métricas</h2><div id="metricsBox" class="mini-grid empty-state">Execute para carregar.</div></article>
+  <article class="card"><h2>Status operacional</h2><div id="modeBox" class="empty-state">Execute para carregar.</div></article>
+</section>
+<section class="card"><h2>Decisões</h2><div id="decisionsBox" class="decision-list empty-state">Nenhuma execução.</div></section>
+<script>
+  function money(v){ return Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2}); }
+  async function loadDataset(){ const data = await fetch('/api/escopo2/dataset').then(r=>r.json()); document.querySelector('#historyTable tbody').innerHTML = data.history.map(r => `<tr><td>${r.id}</td><td>${r.account_code}</td><td>${r.description}</td><td>R$ ${money(r.amount)}</td></tr>`).join(''); document.querySelector('#currentTable tbody').innerHTML = data.current_batch.map(r => `<tr><td>${r.id}</td><td>${r.account_code}</td><td>${r.description}</td><td>R$ ${money(r.amount)}</td></tr>`).join(''); }
+  function renderRun(data){ document.getElementById('summaryBox').classList.remove('empty-state'); document.getElementById('summaryBox').innerHTML = `<div class="mini-card"><span>Histórico</span><strong>${data.summary.history_records}</strong></div><div class="mini-card"><span>Lote</span><strong>${data.summary.current_records}</strong></div><div class="mini-card"><span>Tempo</span><strong>${data.summary.elapsed_ms} ms</strong></div>`; document.getElementById('metricsBox').classList.remove('empty-state'); document.getElementById('metricsBox').innerHTML = `<div class="mini-card"><span>Precision@k</span><strong>${data.metrics.precision_at_k}</strong></div><div class="mini-card"><span>Recall</span><strong>${data.metrics.recall}</strong></div><div class="mini-card"><span>Inconclusivo</span><strong>${data.metrics.inconclusive_rate}</strong></div><div class="mini-card"><span>Latência</span><strong>${data.metrics.avg_latency_ms} ms</strong></div>`; document.getElementById('modeBox').classList.remove('empty-state'); document.getElementById('modeBox').innerHTML = `<div class="mode-pill ${data.operating_mode.mode === 'NORMAL' ? 'ok' : 'warn'}">${data.operating_mode.mode}</div><p>${data.operating_mode.degradation_reasons.join(' ')}</p><ul>${data.operating_mode.fallback_actions.map(x=>`<li>${x}</li>`).join('')}</ul>`; document.getElementById('decisionsBox').classList.remove('empty-state'); document.getElementById('decisionsBox').innerHTML = data.decisions.map(item => `<details class="decision-item"><summary><div><strong>${item.transaction.id}</strong><small>${item.transaction.description}</small></div><div class="pill ${item.structured_decision.decision.toLowerCase()}">${item.structured_decision.decision}</div></summary><div class="decision-body"><p><strong>Score final:</strong> ${item.structured_decision.final_score} · <strong>Tipo sugerido:</strong> ${item.structured_decision.suggested_type}</p><p><strong>Camada 1:</strong> ${item.rule_layer.findings.length ? item.rule_layer.findings.map(f=>f.code).join(', ') : 'Nenhuma'}</p><p><strong>Camada 2:</strong> ${item.stat_layer.findings.length ? item.stat_layer.findings.join(' ') : 'Sem desvio relevante'}</p><p><strong>Camada 3:</strong> ${item.semantic_layer.findings.length ? item.semantic_layer.findings.join(' ') : 'Sem desvio relevante'}</p><p><strong>Camada 4:</strong> ${item.explanation_layer.explanation}</p></div></details>`).join(''); }
+  document.getElementById('runBtn').addEventListener('click', async () => { const btn = document.getElementById('runBtn'); btn.disabled = true; btn.textContent = 'Executando...'; try { const data = await fetch('/api/escopo2/run', {method:'POST'}).then(r=>r.json()); renderRun(data); } finally { btn.disabled = false; btn.textContent = 'Executar detecção'; } });
+  loadDataset();
+</script>
+{% endblock %}

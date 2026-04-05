@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<header class="hero">
+  <div>
+    <p class="eyebrow">Desafio Dattos · Plataforma demonstrativa</p>
+    <h1>Uma demo única com os 3 escopos e Swagger completo</h1>
+    <p class="muted">Mantive o que existia nos demos anteriores e acrescentei um Escopo 3 mais forte, com busca híbrida, ACL, citações, conflito documental, rastreabilidade e métricas de avaliação.</p>
+  </div>
+  <div class="actions">
+    <button id="runAllBtn">Executar os 3 escopos</button>
+    <a href="/escopo-1">Abrir Escopo 1</a>
+    <a href="/escopo-2">Abrir Escopo 2</a>
+    <a href="/escopo-3">Abrir Escopo 3</a>
+  </div>
+</header>
+<section class="grid top-grid">
+  <article class="card stat-card"><span>Escopo 1 · TOTVS</span><strong>{{ scope1_erp_count }}</strong></article>
+  <article class="card stat-card"><span>Escopo 1 · Banco</span><strong>{{ scope1_bank_count }}</strong></article>
+  <article class="card stat-card"><span>Escopo 2 · Histórico</span><strong>{{ history_count }}</strong></article>
+  <article class="card stat-card"><span>Escopo 2 · Lote</span><strong>{{ current_count }}</strong></article>
+  <article class="card stat-card"><span>Escopo 3 · Documentos</span><strong>{{ scope3_docs }}</strong></article>
+  <article class="card stat-card"><span>Escopo 3 · Lançamentos</span><strong>{{ scope3_txs }}</strong></article>
+</section>
+<section class="grid results-grid">
+  <article class="card"><h2>Escopo 1</h2><div id="scope1Overview" class="mini-grid empty-state">Execute para ver conciliação, revisão humana, qualidade e degradação.</div></article>
+  <article class="card"><h2>Escopo 2</h2><div id="scope2Overview" class="mini-grid empty-state">Execute para ver anomalias, inconclusivos e explicabilidade.</div></article>
+  <article class="card"><h2>Escopo 3</h2><div id="scope3Overview" class="mini-grid empty-state">Execute para ver evidência encontrada, conflito documental e acesso restrito.</div></article>
+</section>
+<section class="card">
+  <h2>O que mudou nesta versão</h2>
+  <ul>
+    <li>Escopo 1 com endpoints completos, fila humana e rotas de compatibilidade.</li>
+    <li>Escopo 2 preservado com dados, decisões em 4 camadas e auditoria.</li>
+    <li>Escopo 3 reforçado com retrieval híbrido, citações, ACL, traces e evals.</li>
+  </ul>
+</section>
+<script>
+  document.getElementById('runAllBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('runAllBtn'); btn.disabled = true; btn.textContent = 'Executando...';
+    try {
+      const res = await fetch('/api/run-all', { method: 'POST' });
+      const data = await res.json();
+      const q1 = await fetch('/api/escopo1/quality').then(r => r.json());
+      const q3 = await fetch('/api/escopo3/eval').then(r => r.json());
+      document.getElementById('scope1Overview').classList.remove('empty-state');
+      document.getElementById('scope1Overview').innerHTML = `<div class="mini-card"><span>Precisão</span><strong>${q1.precision}</strong></div><div class="mini-card"><span>Fila humana</span><strong>${q1.human_queue_rate}</strong></div><div class="mini-card"><span>Stage accuracy</span><strong>${q1.stage_accuracy}</strong></div>`;
+      document.getElementById('scope2Overview').classList.remove('empty-state');
+      document.getElementById('scope2Overview').innerHTML = `<div class="mini-card"><span>Precision@k</span><strong>${data.escopo2.metrics.precision_at_k}</strong></div><div class="mini-card"><span>Recall</span><strong>${data.escopo2.metrics.recall}</strong></div><div class="mini-card"><span>Inconclusivo</span><strong>${data.escopo2.metrics.inconclusive_rate}</strong></div>`;
+      document.getElementById('scope3Overview').classList.remove('empty-state');
+      document.getElementById('scope3Overview').innerHTML = `<div class="mini-card"><span>NDCG@10</span><strong>${q3.metrics.ndcg_at_10}</strong></div><div class="mini-card"><span>Recall@5</span><strong>${q3.metrics.recall_at_5}</strong></div><div class="mini-card"><span>Faithfulness</span><strong>${q3.metrics.faithfulness}</strong></div>`;
+    } finally { btn.disabled = false; btn.textContent = 'Executar os 3 escopos'; }
+  });
+</script>
+{% endblock %}
