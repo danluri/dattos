@@ -1,6 +1,0 @@
-services:
-  dattos-demo-unificado:
-    build: .
-    container_name: dattos-demo-unificado
-    ports:
-      - "8000:8000"
