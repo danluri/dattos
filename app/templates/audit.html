@@ -17,17 +17,25 @@
 <section class="card"><h2>Eventos combinados</h2><div id="auditEvents" class="audit-list empty-state">Nenhum evento carregado.</div></section>
 <script>
   document.getElementById('loadBtn').addEventListener('click', async () => {
-    const data = await fetch('/api/audit/combined').then(r=>r.json());
-    document.getElementById('scope1Metrics').classList.remove('empty-state');
-    document.getElementById('scope1Metrics').innerHTML = `<div class="mini-card"><span>Precisão</span><strong>${data.summary.escopo1.precision}</strong></div><div class="mini-card"><span>Fila humana</span><strong>${data.summary.escopo1.human_queue_rate}</strong></div><div class="mini-card"><span>F1</span><strong>${data.summary.escopo1.f1}</strong></div>`;
-    document.getElementById('scope2Metrics').classList.remove('empty-state');
-    document.getElementById('scope2Metrics').innerHTML = `<div class="mini-card"><span>Precision@k</span><strong>${data.summary.escopo2.precision_at_k}</strong></div><div class="mini-card"><span>Recall</span><strong>${data.summary.escopo2.recall}</strong></div><div class="mini-card"><span>Inconclusivo</span><strong>${data.summary.escopo2.inconclusive_rate}</strong></div>`;
-    document.getElementById('scope3Metrics').classList.remove('empty-state');
-    document.getElementById('scope3Metrics').innerHTML = `<div class="mini-card"><span>NDCG@10</span><strong>${data.summary.escopo3.ndcg_at_10}</strong></div><div class="mini-card"><span>Recall@5</span><strong>${data.summary.escopo3.recall_at_5}</strong></div><div class="mini-card"><span>Faithfulness</span><strong>${data.summary.escopo3.faithfulness}</strong></div>`;
-    document.getElementById('countBox').classList.remove('empty-state');
-    document.getElementById('countBox').innerHTML = `<div class="mini-card"><span>Total</span><strong>${data.summary.counts.total_events}</strong></div><div class="mini-card"><span>Escopo 1</span><strong>${data.summary.counts.scope1_events}</strong></div><div class="mini-card"><span>Escopo 2</span><strong>${data.summary.counts.scope2_events}</strong></div><div class="mini-card"><span>Escopo 3</span><strong>${data.summary.counts.scope3_events}</strong></div>`;
-    const box = document.getElementById('auditEvents'); box.classList.remove('empty-state');
-    box.innerHTML = data.audit_events.map(event => `<details class="audit-item"><summary><span><strong>${event.scope}</strong> · ${event.transaction_id || event.entity_id || event.trace_id || ''}</span><span>${event.resolution || event.decision || event.status || event.event_type || ''}</span></summary><pre>${JSON.stringify(event, null, 2)}</pre></details>`).join('');
+    try {
+      const response = await fetch('/api/audit/combined');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      document.getElementById('scope1Metrics').classList.remove('empty-state');
+      document.getElementById('scope1Metrics').innerHTML = `<div class="mini-card"><span>Precisão</span><strong>${data.summary.escopo1.precision}</strong></div><div class="mini-card"><span>Fila humana</span><strong>${data.summary.escopo1.human_queue_rate}</strong></div><div class="mini-card"><span>F1</span><strong>${data.summary.escopo1.f1}</strong></div>`;
+      document.getElementById('scope2Metrics').classList.remove('empty-state');
+      document.getElementById('scope2Metrics').innerHTML = `<div class="mini-card"><span>Precision@k</span><strong>${data.summary.escopo2.precision_at_k}</strong></div><div class="mini-card"><span>Recall</span><strong>${data.summary.escopo2.recall}</strong></div><div class="mini-card"><span>Inconclusivo</span><strong>${data.summary.escopo2.inconclusive_rate}</strong></div>`;
+      document.getElementById('scope3Metrics').classList.remove('empty-state');
+      document.getElementById('scope3Metrics').innerHTML = `<div class="mini-card"><span>NDCG@10</span><strong>${data.summary.escopo3.ndcg_at_10}</strong></div><div class="mini-card"><span>Recall@5</span><strong>${data.summary.escopo3.recall_at_5}</strong></div><div class="mini-card"><span>Faithfulness</span><strong>${data.summary.escopo3.faithfulness}</strong></div>`;
+      document.getElementById('countBox').classList.remove('empty-state');
+      document.getElementById('countBox').innerHTML = `<div class="mini-card"><span>Total</span><strong>${data.summary.counts.total_events}</strong></div><div class="mini-card"><span>Escopo 1</span><strong>${data.summary.counts.scope1_events}</strong></div><div class="mini-card"><span>Escopo 2</span><strong>${data.summary.counts.scope2_events}</strong></div><div class="mini-card"><span>Escopo 3</span><strong>${data.summary.counts.scope3_events}</strong></div>`;
+      const box = document.getElementById('auditEvents'); box.classList.remove('empty-state');
+      box.innerHTML = data.audit_events.map(event => `<details class="audit-item"><summary><span><strong>${event.scope}</strong> · ${event.transaction_id || event.entity_id || event.trace_id || ''}</span><span>${event.resolution || event.decision || event.status || event.event_type || ''}</span></summary><pre>${JSON.stringify(event, null, 2)}</pre></details>`).join('');
+    } catch (err) {
+      const box = document.getElementById('auditEvents');
+      box.classList.remove('empty-state');
+      box.textContent = 'Erro ao carregar auditoria: ' + err.message;
+    }
   });
 </script>
 {% endblock %}

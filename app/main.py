@@ -12,7 +12,7 @@ from .escopo2_data import TransactionRepository as Escopo2DataRepo
 from .escopo2_engine import AnomalyDetectionEngine
 from .escopo3_data import DocumentDataRepository
 from .escopo3_engine import Scope3ProcessingEngine
-from .scope1_module import TransactionQueryService, router as scope1_router
+from .scope1_module import EventQueryService, QualityAnalyzer, TransactionQueryService, router as scope1_router
 from .scope3_module import router as scope3_router
 
 # Application configuration
@@ -140,6 +140,57 @@ async def escopo3_alias(request: Request) -> HTMLResponse:
 async def audit_page(request: Request) -> HTMLResponse:
     """Audit and monitoring page."""
     return templates.TemplateResponse("audit.html", {"request": request, "page": "audit"})
+
+
+@app.get("/api/audit/combined")
+async def get_combined_audit() -> Dict[str, Any]:
+    """Get combined audit metrics for all scopes."""
+    scope1_metrics = QualityAnalyzer.compute_quality_metrics()
+    scope2_metrics = SCOPE2_LAST_RESULT.get("metrics") if isinstance(SCOPE2_LAST_RESULT, dict) else None
+    if scope2_metrics is None:
+        scope2_metrics = {"precision_at_k": 0.0, "recall": 0.0, "inconclusive_rate": 0.0}
+
+    scope3_metrics = ApplicationServices.get_scope3_engine().run_evaluation()["metrics"]
+    events = EventQueryService.get_recent_events(limit=50)
+    audit_events = [
+        {
+            "scope": "Escopo 1",
+            "event_type": event.get("event_type"),
+            "entity_id": event.get("entity_id"),
+            "trace_id": event.get("id"),
+            "resolution": event.get("payload_json", {}).get("result") if isinstance(event.get("payload_json"), dict) else None,
+            "status": event.get("payload_json", {}).get("status") if isinstance(event.get("payload_json"), dict) else None,
+            **event
+        }
+        for event in events
+    ]
+
+    return {
+        "summary": {
+            "escopo1": {
+                "precision": scope1_metrics.get("precision"),
+                "human_queue_rate": scope1_metrics.get("human_queue_rate"),
+                "f1": scope1_metrics.get("f1")
+            },
+            "escopo2": {
+                "precision_at_k": scope2_metrics.get("precision_at_k"),
+                "recall": scope2_metrics.get("recall"),
+                "inconclusive_rate": scope2_metrics.get("inconclusive_rate")
+            },
+            "escopo3": {
+                "ndcg_at_10": scope3_metrics.get("ndcg_at_10"),
+                "recall_at_5": scope3_metrics.get("recall_at_5"),
+                "faithfulness": scope3_metrics.get("faithfulness")
+            },
+            "counts": {
+                "total_events": len(audit_events),
+                "scope1_events": len(audit_events),
+                "scope2_events": 0,
+                "scope3_events": 0
+            }
+        },
+        "audit_events": audit_events
+    }
 
 
 # API routes for Scope 2
