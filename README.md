@@ -1,50 +1,66 @@
-# Dattos Demo Unificada v3
-Demo única com os 3 escopos do desafio:
+# Dattos Demo
 
-- **Escopo 1**: conciliação bancária com matching exato, fuzzy, ML, fila humana, qualidade e degradação.
-- **Escopo 2**: detecção de anomalias em 4 camadas, com explicabilidade e métricas.
-- **Escopo 3**: RAG financeiro com busca híbrida, ACL por perfil, citações, conflito documental, avaliação e traces.
+Demo técnica com os 3 escopos integrados em uma aplicação Python/FastAPI.
 
-## Como subir
-=======
-# Demo simplificada do Escopo 1
+## Visão geral
 
-Esta aplicação demonstra, de forma executável, a ideia central do Escopo 1:
+Este projeto demonstra três blocos funcionais:
 
-- pipeline de conciliação **multi-estágio**;
-- matching **exato**, **fuzzy**, **ML** e **revisão humana**;
-- **trilha de auditoria** com eventos detalhados;
-- **critérios de qualidade** e uma visão simples de **degradação**.
+- **Escopo 1**: conciliação bancária com mecanismo multiestágio, revisão humana, métricas de qualidade e degradação.
+- **Escopo 2**: detecção de anomalias em camadas, com explicação e métricas operacionais.
+- **Escopo 3**: RAG financeiro com busca híbrida, controle de acesso por perfil, citações, conflito documental e avaliação.
 
-## O que a demo faz
+## Principais funcionalidades
 
-Ao subir a aplicação, ela carrega dados mockados com 5 casos:
+### Escopo 1
 
-1. **EXACT**: match automático por valor + referência.
-2. **FUZZY**: match automático por similaridade textual.
-3. **ML**: match automático por modelo simples de classificação.
-4. **HUMAN por materialidade**: candidato forte, mas o valor exige revisão humana.
-5. **HUMAN por baixa confiança**: caso que não atingiu confiança suficiente.
+- Conciliação com match exato, fuzzy, ML e revisão humana.
+- Trilha de auditoria de decisões e eventos.
+- Métricas de qualidade (`precision`, `recall`, `f1`) e status de degradação.
+- Reset de demo e re-seed de dados.
 
-## Stack
+### Escopo 2
 
-- **FastAPI**: API e Swagger rápido para demonstrar o fluxo.
-- **SQLite**: persistência simples e portátil para demo.
-- **RapidFuzz**: similaridade textual no estágio fuzzy.
-- **scikit-learn**: pequeno modelo de Machine Learning para o estágio ML.
-- **Docker Compose**: subida simples com um comando.
+- Detecção de anomalias em quatro camadas.
+- Métricas de operação e explicabilidade.
+- Visualização de histórico e lote atual.
 
-## Como rodar
+### Escopo 3
+
+- Busca e recuperação de documentos financeiros.
+- Perfis de usuário com ACL.
+- Cenários de análise de transações.
+- Avaliação de desempenho do motor de RAG.
+
+## Tecnologias usadas
+
+- **FastAPI**
+- **SQLite**
+- **Docker Compose**
+- **RapidFuzz**
+- **scikit-learn**
+- **Jinja2** para templates
+
+## Executando o projeto
 
 ```bash
 docker compose up --build
 ```
-Acesse:
 
-- App: `http://localhost:8000`
-- Swagger: `http://localhost:8000/docs`
+Em seguida, abra no navegador:
 
-## Destaques
+- Aplicação: `http://localhost:8000`
+- Documentação Swagger: `http://localhost:8000/docs`
+
+## Estrutura da interface
+
+- `Visão Geral` — dashboard principal.
+- `Escopo 1` — conciliação com execução, reset, decisões e fila humana.
+- `Escopo 2` — detecção de anomalias e métricas.
+- `Escopo 3` — análise de transações com RAG e profiles.
+- `Auditoria` — visão combinada de métricas de todos os escopos.
+
+## Endpoints mais importantes
 
 ### Escopo 1
 
@@ -58,153 +74,75 @@ Acesse:
 - `GET /api/escopo1/quality`
 - `GET /api/escopo1/degradation`
 
-Também existem rotas de compatibilidade do demo individual:
-
-- `POST /api/reconcile/run`
-- `GET /api/review/pending`
-- `POST /api/review/{decision_id}`
-- etc.
-
 ### Escopo 2
 
 - `POST /api/escopo2/run`
 - `GET /api/escopo2/dataset`
-- `GET /api/escopo2/results`
+- `GET /api/escopo2/transactions`
+- `GET /api/escopo2/last-result`
 
 ### Escopo 3
 
+- `GET /api/escopo3/dataset`
 - `POST /api/escopo3/analyze`
 - `POST /api/escopo3/search`
 - `GET /api/escopo3/eval`
-- `GET /api/escopo3/traces`
-- `POST /api/escopo3/feedback`
 
-## Cenários bons para apresentação
+### Auditoria
 
-- `TX-1001` com perfil `controller`: caso conclusivo com citações.
-- `TX-1003` com perfil `controller`: conflito documental.
-- `TX-1004` com perfil `auditor_externo`: acesso restrito por ACL.
-=======
-Depois abra:
+- `GET /api/audit/combined`
+- `GET /api/health`
 
-- Interface simples: `http://localhost:8000/`
-- Swagger: `http://localhost:8000/docs`
-
-## Fluxo sugerido para testar
+## Como testar rapidamente
 
 1. Suba a aplicação.
-2. Acesse `/`.
-3. Clique em **Executar conciliação**.
-4. Veja os resultados em:
-   - decisões;
-   - eventos de auditoria;
-   - métricas de qualidade;
-   - status de degradação.
-5. Para revisar casos humanos, use a API em `/docs`.
+2. Acesse a UI em `http://localhost:8000`.
+3. No menu, vá para `Escopo 1` e execute a conciliação.
+4. Em `Escopo 3`, use os botões de cenário:
+   - **TX-1001 / controller** — caso conclusivo.
+   - **TX-1003 / controller** — conflito documental.
+   - **TX-1004 / auditor** — controle de acesso.
+5. Abra `Auditoria` e clique em `Carregar auditoria`.
 
-## Exemplo de revisão humana
+## Observações importantes
 
-### Aprovar uma pendência
-
-```http
-POST /api/review/4
-Content-Type: application/json
-
-{
-  "action": "approve",
-  "comment": "Aprovado pelo controller"
-}
-```
-
-### Rejeitar uma pendência
-
-```http
-POST /api/review/5
-Content-Type: application/json
-
-{
-  "action": "reject",
-  "comment": "Sem evidência suficiente"
-}
-```
-
-## Endpoints principais
-
-- `POST /api/reset` — reseta os dados da demo.
-- `POST /api/reconcile/run` — executa o pipeline.
-- `GET /api/transactions` — lista transações ERP e banco.
-- `GET /api/decisions` — mostra decisões com contexto.
-- `GET /api/events` — mostra trilha de auditoria.
-- `GET /api/review/pending` — mostra fila humana.
-- `POST /api/review/{decision_id}` — aprova/rejeita revisão.
-- `GET /api/quality` — calcula métricas de qualidade.
-- `GET /api/degradation` — compara o estado atual com um baseline.
-- `GET /api/health` — healthcheck.
-
-## Como esta demo mapeia para o Escopo 1
-
-### 1. Multi-estágio
-O pipeline tenta resolver do mais confiável para o menos confiável:
-
-1. **Exact**
-2. **Fuzzy**
-3. **ML**
-4. **Human review**
-
-### 2. Auditabilidade
-Cada etapa gera eventos com:
-
-- versão do pipeline;
-- versão do modelo;
-- candidatos considerados;
-- scores calculados;
-- decisão final;
-- comentário humano, quando houver.
-
-### 3. Critérios de qualidade
-A demo expõe:
-
-- **precision**;
-- **recall**;
-- **f1**;
-- **human queue rate**;
-- **auto approval rate**;
-- **stage accuracy**.
-
-### 4. Degradação
-A API compara o resultado atual com um baseline simples:
-
-- precision mínima esperada;
-- taxa máxima de fila humana.
-
-Se sair do intervalo esperado, o status muda para `degraded`.
+- Se `Escopo 1` não tiver decisões, as métricas de auditoria aparecem como `null` porque ainda não há dados calculados.
+- Após `Resetar demo`, os dados são re-seedados automaticamente.
+- A interface principal também pode ser explorada via Swagger em `/docs`.
 
 ## Estrutura do projeto
 
 ```text
-escopo1-demo/
-├── app/
-│   ├── main.py
-│   └── static/
-│       └── index.html
-├── data/
-│   └── lake/
-├── docker-compose.yml
-├── Dockerfile
-├── README.md
-└── requirements.txt
+app/
+  ├── main.py
+  ├── scope1_module.py
+  ├── escopo2_engine.py
+  ├── escopo2_data.py
+  ├── escopo3_engine.py
+  ├── escopo3_data.py
+  ├── scope3_module.py
+  ├── templates/
+  └── static/
+
+data/
+Dockerfile
+docker-compose.yml
+requirements.txt
+README.md
 ```
 
-## Limitações intencionais
+## Limitações desta demo
 
-Esta é uma demo simplificada para portfólio e avaliação técnica. Ela **não** pretende reproduzir um ambiente produtivo completo.
+Esta é uma prova de conceito e não um produto final. O foco é demonstrar:
 
-O que foi simplificado:
+- fluxo de conciliação e auditoria;
+- detecção de anomalias explicável;
+- motor de RAG com perfil e citações;
+- integração UI/API em container.
 
-- banco SQLite em vez de banco transacional + lake + busca;
-- modelo de ML treinado com dados sintéticos;
-- UI muito simples;
-- regras fixas e thresholds estáticos.
+Limitações intencionais:
 
-Mesmo assim, ela mostra a ideia central do Escopo 1 com execução prática e rastreável.
->>>>>>> dd27806656399473a21db3b282b330a5e55509ca
+- banco em SQLite;
+- dados mockados;
+- modelo ML simplificado;
+- lógica de regras estática.

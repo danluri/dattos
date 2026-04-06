@@ -826,6 +826,7 @@ def initialize_scope1_module() -> None:
 def reset_demo_data_endpoint() -> Dict[str, Any]:
     """Reset demo data."""
     DataSeeder.reset_demo_data()
+    DataSeeder.seed_demo_data(force=True)
     return {"message": "Demo data reset successfully."}
 
 
